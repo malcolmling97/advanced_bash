@@ -3,7 +3,6 @@
 set -Eeuo pipefail
 
 # Variables at the top for easy amendment
-PROM_IMAGE_VER="${PROM_IMAGE_VER:-2.54.1}"
 NE_IMAGE_VER="${NE_IMAGE_VER:-1.8.2}"
 
 # Install docker
@@ -32,15 +31,6 @@ cat <<EOF > docker-compose.yml
 version: '3.8'
 
 services:
-  prometheus:
-    image: prom/prometheus:v${PROM_IMAGE_VER}
-    container_name: prometheus
-    network_mode: "host"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    restart: unless-stopped
-
   node_exporter:
     image: prom/node-exporter:v${NE_IMAGE_VER}
     container_name: node_exporter
@@ -59,23 +49,6 @@ services:
       - '--collector.tcpstat'
       - '--collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker|snap|var/lib/containerd)($|/)'
 
-volumes:
-  prometheus_data:
-EOF
-
-# Prometheus config
-cat <<'EOF' > prometheus.yml
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: "prometheus"
-    static_configs:
-      - targets: ["localhost:9090"] 
-
-  - job_name: "node_exporter"
-    static_configs:
-      - targets: ["localhost:9100"]
 EOF
 
 
